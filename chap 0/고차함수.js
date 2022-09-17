@@ -24,3 +24,5 @@ const addMaker = a => b => a + b;
 const add10 = addMaker(10); // a 값이 클로저
 log(add10(5));
 log(add10(10));
+
+// test
