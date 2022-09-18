@@ -1,0 +1,30 @@
+<script src="./lib/fx.js"></script>
+
+<script>
+    const products = [ // Array
+        { name: '반팔티', price: 150 }, // Object
+        { name: '긴팔티', price: 200 },
+        { name: '면바지', price: 150 },
+        { name: '니트', price: 300 },
+        { name: '청바지', price: 250 },
+    ];
+
+    // 상품들의 가격만 뽑음
+    log(map(p => p.price, products));
+    // 상품들의 가격만 뽑음 + 특정 금액만 뽑고 싶음
+    log(map(p => p.price, filter(p => p.price < 200, products)));
+
+    // // 상품들의 가격만 뽑음 + 특정 금액만 뽑고 싶음 + 합산
+    const sum = (a, b) => a + b;
+    log(
+        reduce(
+            sum,
+            map(p => p.price,
+            filter(p => p.price < 200, products)))); // 300
+
+    log(
+        reduce(
+            sum,
+            filter(n => n < 200,
+            map(p => p.price, products)))); // 300
+</script>
