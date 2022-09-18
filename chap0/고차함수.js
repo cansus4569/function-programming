@@ -22,7 +22,5 @@ times(a => log(a + 10), 3);
 // 함수를 만들어 리턴하는 함수 (클로저를 만들어 리턴하는 함수)
 const addMaker = a => b => a + b;
 const add10 = addMaker(10); // a 값이 클로저
-log(add10(5));
-log(add10(10));
-
-// test
+log(add10(5));  // 15
+log(add10(10)); // 20
