@@ -1,0 +1,154 @@
+<script src="./lib/fx.js"></script>
+<script>
+const products = [ // Array
+    { name: '반팔티', price: 150 }, // Object
+    { name: '긴팔티', price: 200 },
+    { name: '면바지', price: 150 },
+    { name: '니트', price: 300 },
+    { name: '청바지', price: 250 },
+];
+const add = (a, b) => a + b;
+/**
+ * go 함수
+ * - 함수와 인자를 전달해서 즉시 평가
+ */
+const go = (...v) => reduce((a,f) => f(a), v);
+// acc = 0
+// acc = f(acc, a) = (a, f) => f(a) = (0, a => a + 5) => 0 + 5 = 5
+//      f 는 (a, f) => f(a)
+//      param : acc = 0, a = a => a + 5
+//      대입 : (0, a => a + 5) => 0 + 5 = 5
+//      acc = 5 갱신 (반복))
+go(
+    // 0,
+    // a => a + 5,
+    add(0, 5),
+    a => a + 50,
+    a => a + 500,
+    log // 555
+); 
+/**
+ * pipe 함수
+ * - 합성된 함수를 리턴하는 함수
+ */
+// const pipe = (...v) => a => go(a, ...v);
+// const f = pipe(
+//     a => a + 5,
+//     a => a + 50,
+//     a => a + 500
+// );
+// log(f(0)); // 555
+const pipe = (f, ...v) => (...as) => go(f(...as), ...v);
+
+const f = pipe(
+    // (a, b) => a + b,
+    add,
+    a => a + 50,
+    a => a + 500
+);
+
+log(f(0, 5)); // 555
+/**
+ * go 함수를 사용하여 가독성 좋은 코드 만들기
+ * 읽기 순서 : 위 -> 아래
+ */
+go(
+    products,   // 타겟
+    products => filter(p => p.price < 200, products), // 가격 필터
+    products => map(p => p.price, products), // 필터된 가격 추출
+    prices => reduce(add, prices), // 추출된 가격 합산
+    log // 300
+);
+
+go( // curry 적용
+    products,   // 타겟
+    filter(p => p.price < 200), // 가격 필터
+    map(p => p.price), // 필터된 가격 추출
+    reduce(add), // 추출된 가격 합산
+    log // 300
+);
+</script>
+
+<script>
+/**
+ * curry
+ * - 커링
+ * - 미리 받아두어 키핑하여 나머지가 들어올 때 평가하는 느낌
+ */
+// const curry = f => 
+//     (a, ..._) => _.length ? f(a, ..._) : (..._) => f(a, ..._);
+
+// const curry = f => 
+//     function curried(...args) {
+//         return args.length >= f.length ? 
+//             f(...args) : 
+//             (...args2) => curried(...args, ...args2);
+// }
+
+const multi = curry((a, b) => a * b);
+log(multi);
+log(multi(1));
+log(multi(2)(3));
+
+const multi2 = multi(2);
+log(multi2(4));
+log(multi2(5));
+log(multi2(10));
+</script>
+
+<script>
+/**
+ * 함수 조합으로 함수 만들기
+ */
+
+// Step 1. 오리지널 go 함수
+go(
+    products,
+    filter(p => p.price < 200),
+    map(p => p.price),  // 코드 중복
+    reduce(add),        // 코드 중복
+    log
+);
+go(
+    products,
+    filter(p => p.price >= 200),
+    map(p => p.price),  // 코드 중복
+    reduce(add),        // 코드 중복
+    log
+);
+
+// Step 2. 코드 중복 제거
+const total_price = pipe(
+    map(p => p.price),  // 코드 중복
+    reduce(add),        // 코드 중복
+);
+go(
+    products,
+    filter(p => p.price < 200), // 코드 쪼개어 간결화
+    total_price,                // 코드 쪼개어 간결화
+    log
+);
+go(
+    products,
+    filter(p => p.price >= 200),    // 코드 쪼개어 간결화
+    total_price,                    // 코드 쪼개어 간결화
+    log
+);
+
+// Step 3. 코드 쪼개어 간결화
+const eval_price = predi => pipe(
+    filter(predi), // 코드 쪼개어 간결화
+    total_price,   // 코드 쪼개어 간결화
+);
+go(
+    products,
+    eval_price(p => p.price < 200),
+    log
+);
+go(
+    products,
+    eval_price(p => p.price >= 200),
+    log
+);
+
+</script>
