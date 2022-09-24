@@ -1,0 +1,97 @@
+<script src="./lib/fx.js"></script>
+
+<!-- range -->
+
+<script>
+    const add = (a, b) => a + b;
+    const range = n => {
+        let i = -1;
+        let res = [];
+        while (++i < n) {
+            // log(i, 'range');
+            res.push(i);
+        }
+        return res;
+    }
+
+    // log(range(5));
+    // [0, 1, 2, 3, 4]
+
+    // log(range(2));
+    // [0, 1]
+
+    var list = range(4); // 코드들이 평가되어 값이 담김
+    log(list); // 배열
+    // log(reduce(add, list)); // 이터러블을 받기 때문, 이미 평가된 값을 연산하여 생성
+</script>
+
+<!-- 느긋한 L.range -->
+<script>
+    log('#################');
+
+    const L = {};
+    L.range = function *(l) { // 지연성을 가지는 제너레이터
+        let i = -1;
+        while (++i < l) {
+            // log(i, 'L.range');
+            yield i;
+        }
+    };
+
+    var list = L.range(4); // 평가되지 않음
+    log(list); // 이터레이터
+    log(list.next()); // next 를 수행해야 하나씩 평가되어짐
+    log(list.next());
+    log(list.next());
+    log(list.next());
+    // log(reduce(add, list)); // 이터러블을 받기 때문, 평가하고 값 생성
+</script>
+
+<script>
+    // 성능 테스트 비교
+    function test(name, time, f) {
+        console.time(name);
+        while (time--) f();
+        console.timeEnd(name);
+    }
+    // test('range', 10, () => reduce(add, range(1000000)));
+    // test('L.range', 10, () => reduce(add, L.range(1000000)));
+</script>
+
+<script>
+    // take
+    const take = curry((l, iter) => {
+        let res = [];
+        for (const a of iter) {
+            res.push(a);
+            if (res.length == l) return res;
+        }
+        return res;
+    });
+    // log(range(100)); // [ 0, 1, ..., 99, 100 ] 배열 출력
+    log(take(5, range(100))); // 5개만 추출
+    log(take(5, L.range(100))); //  5개만 추출
+
+    console.time('');
+    // 이미 100000 개를 보유한 배열로 부터 5개 값 추출
+    // log(take(5, range(100000)));
+    go(
+        range(100000),
+        take(5),
+        reduce(add),
+        log
+    );
+    console.timeEnd('');
+
+    console.time('');
+    // 100000개를 정의를 했지만 평가가 안된 상황, 필요에 따라 평가해서 끄집어내기 때문에 효율적임
+    // log(take(5, L.range(100000)));
+    // log(take(5, L.range(Infinity))); // 평가를 안하기에 무한수 가능 (즉, 지연성 효율)
+    go(
+        L.range(100000),
+        take(5),
+        reduce(add),
+        log
+    );
+    console.timeEnd('');
+</script>

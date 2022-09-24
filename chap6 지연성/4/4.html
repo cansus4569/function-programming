@@ -1,0 +1,178 @@
+<script src="./lib/fx.js"></script>
+<script>
+    //  L.flatten
+    log([...[1, 2], 3, 4, ...[5, 6], ...[7, 8, 9]]);
+
+    const isIterable = a => a && a[Symbol.iterator];
+
+    L.flatten = function* (iter) {
+        for (const a of iter) {
+            if (isIterable(a)) for (const b of a) yield b;
+            else yield a;
+        }
+    };
+
+    var it = L.flatten([[1, 2], 3, 4, [5, 6], [7, 8, 9]]);
+    // log([...it]);
+    log(it.next());
+    log(it.next());
+    log(it.next());
+    log(it.next());
+    log(take(6, L.flatten([[1, 2], 3, 4, [5, 6], [7, 8, 9]])));
+    // log(it.next());
+    // log(it.next());
+    // log(it.next());
+    // log(it.next());
+    // log(it.next());
+    // log(it.next());
+    const flatten = pipe(L.flatten, takeAll);
+    log(flatten([[1, 2], 3, 4, [5, 6], [7, 8, 9]]));
+    log('##############');
+</script>
+<script>
+    /**
+     * yield*
+     * 
+     * yield* 을 활용하면 위의 L.flatten 을 다음과 같이 변경할 수 있다.
+     * 
+     * yield* iterable
+     * =
+     * for (const val of iterable) yield val;
+     */
+    L.flatten_new = function* (iter) {
+        for (const a of iter) {
+            if (isIterable(a)) yield* a; // 개선된 부분
+            else yield a;
+        }
+    };
+
+    var it = L.flatten_new([[1, 2], 3, 4, [5, 6], [7, 8, 9]]);
+    log([...it]);
+    log('##############');
+</script>
+<script>
+    /**
+     * L.deepFlat
+     * 
+     * 깊은 iterable을 모두 펼치고 싶다면 아래와 같이 L.deepFlat을 구현하여 사용할 수 있다.
+     * 
+     * L.deepFlat은 깊은 iterable을 펼쳐준다.
+     */
+    L.deepFlat = function* f(iter) {
+        for (const a of iter) {
+            if (isIterable(a)) yield* f(a);
+            else yield a;
+        }
+    };
+    log([...L.deepFlat([1, [2, [3, 4], [[5]]]])]); // [1, 2, 3, 4, 5]
+    log('##############');
+</script>
+<script>
+    /**
+     * L.flatMap
+     * 
+     * map과 flatten 을 동시에 하는 함수
+     */
+    // Array.prototype.flatMap : Array 에서만 동작 
+    // log([[1, 2], [3, 4], [5, 6, 7], 8, 9, [10]].flatMap(a => a));
+    // log([[1, 2], [3, 4], [5, 6, 7]].flatMap(a => a.map(a => a * a)));
+    // log(flatten([[1, 2], [3, 4], [5, 6, 7]].map(a => a.map(a => a * a))));
+
+    L.flatMap = curry(pipe(L.map, L.flatten));
+    const flatMap = curry(pipe(L.map, flatten));
+
+    // var it = L.flatMap(map(a => a * a), [[1, 2], [3, 4], [5, 6, 7]]);
+    var it = L.flatMap(a => a, [[1, 2], [3, 4], [5, 6, 7]]);
+    log([...it]);
+    // log(it.next());
+    // log(it.next());
+    // log(it.next());
+    // log(it.next());
+    // log(it.next());
+    // log(it.next());
+    // log(it.next());
+    // log(it.next());
+    log(flatMap(a => a, [[1, 2], [3, 4], [5, 6, 7]]));
+
+    log(flatMap(L.range, [1, 2, 3,]));
+    log(flatMap(L.range, map(a => a + 1, [1, 2, 3,])));
+    log('##############');
+</script>
+<script>
+    /**
+     * 2차원 배열 다루기
+     */
+    const arr = [
+        [1, 2],
+        [3, 4, 5],
+        [6, 7, 8],
+        [9, 10]
+    ];
+    go(arr,
+        L.flatten,
+        L.filter(a => a % 2),
+        L.map(a => a * a),
+        take(4),
+        reduce(add),
+        log);
+    log('##############');
+</script>
+<script>
+    /**
+     * 지연성 / 이터러블 중심 프로그래밍 실무적인 코드
+     */
+    var users = [
+        {
+            name: 'a', age: 21, family: [
+                { name: 'a1', age: 53 }, { name: 'a2', age: 47 },
+                { name: 'a3', age: 16 }, { name: 'a4', age: 15 }
+            ]
+        },
+        {
+            name: 'b', age: 24, family: [
+                { name: 'b1', age: 58 }, { name: 'b2', age: 51 },
+                { name: 'b3', age: 19 }, { name: 'b4', age: 22 }
+            ]
+        },
+        {
+            name: 'c', age: 31, family: [
+                { name: 'c1', age: 64 }, { name: 'c2', age: 62 }
+            ]
+        },
+        {
+            name: 'd', age: 20, family: [
+                { name: 'd1', age: 42 }, { name: 'd2', age: 42 },
+                { name: 'd3', age: 11 }, { name: 'd4', age: 7 }
+            ]
+        }
+    ];
+
+    go(users,
+        // L.map(u => u.family),
+        // L.flatten,
+        L.flatMap(u => u.family),
+        L.filter(u => u.age < 20),
+        L.map(u => u.age),
+        take(4),
+        reduce(add),
+        log);
+</script>
+<script>
+    /**
+     * 객체지향 프로그래밍
+     * 
+     * 우선 순위 : 객체 데이터
+     * 
+     * 데이터를 우선적으로 정리를 하고 
+     * 그 이후에 프로그래밍 메소드 작성 해나감
+     */
+
+    /**
+     * 함수형 프로그래밍
+     * 
+     * 우선 순위 : 함수
+     * 
+     * 이미 만들어진 함수 조합이 있다면 
+     * 그 함수 조합에 맞는 데이터를 구성하는 식으로 프로그래밍 함
+     */
+</script>
