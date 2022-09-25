@@ -1,0 +1,53 @@
+<script src="./lib/fx.js"></script>
+
+## Kleisli Composition
+
+오류가 있을 수 있는 상황에서의 함수 합성을 안전하게 하는 하나의 규칙
+
+<script>
+    // f . g
+    // f(g(x)) = f(g(x))
+    // f(g(x)) = g(x)  ==> Kleisli Composition 규칙
+    //         g(x) 에서 에러가 발생했을 경우
+
+    var users = [
+        { id: 1, name: 'aa' },
+        { id: 2, name: 'bb' },
+        { id: 3, name: 'cc' }
+    ];
+
+    const getUserById = id =>
+        find(u => u.id == id, users) || Promise.reject('없어요!');
+
+    const f = ({name}) => name;
+    const g = getUserById;
+
+    
+
+
+    /*
+    const fg = id => f(g(id));      // 일반적인 작성
+
+    // 외부 요인 발생 (=users 객체의 변동이 발생)
+    users.pop();
+    users.pop();
+
+    log(users);
+
+    // 외부 요인으로 수정이 이루어져서 위험한 상황 발생함
+    const r2 = fg(2); // 에러 발생
+    // 상황에 따라 에러가 발생할 수 있기 때문에
+    // 위와 같이 합성을 하면서 에러가 발생하지 않도록 하는 것이
+    // Kleisli Composition 방안이다.
+    log(r2);
+
+    */
+
+    // Kleisli Composition 작성 방법
+    const fg = id => Promise.resolve(id).then(g).then(f).catch(a => a);
+
+    users.pop();
+    users.pop();
+    fg(2).then(log);
+    log(g(2));
+</script>

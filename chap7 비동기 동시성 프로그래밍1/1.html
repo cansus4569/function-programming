@@ -1,0 +1,71 @@
+<script src="./lib/fx.js"></script>
+
+자바스크립트에서 비동기 동시성 프로그래밍 하는 방법 
+- 콜백 패턴
+- 프로미스 기반으로한 프로미스 메서드 체인을 통해서 함수 합성하는 방법
+- async/await 방법 (프로미스를 기반으로 함)
+
+
+## 일급
+<!-- 콜백과 Promise -->
+<script>
+    // 콜백 패턴
+    function add10(a, callback) {
+        setTimeout(() => callback(a + 10), 100);
+    }
+
+    var a = add10(5, res => {
+        add10(res, res => {
+            add10(res, res => {
+                log(res);
+            });
+        });
+    });
+
+    log(a); // undefined
+
+    // 프로미스 방법
+    function add20(a) {
+        return new Promise(resolve => setTimeout(() => resolve(a + 20), 100));
+    }
+
+    var b = add20(5)
+        .then(add20)
+        .then(add20)
+        .then(log);
+
+    log(b); // Promise {<pending>}
+    
+    /**
+     * 프로미스와 콜백 패턴의 차이는
+     * 콜백 지옥을 해결하는 then 메서드도 있지만
+     * 가장 큰 차이는 
+     * 중요 : 프로미스는 일급 값을 다룸!!!
+     */
+    log('###################');
+</script>
+
+## 일급 활용
+<script>
+    const delay100 = a =>
+        new Promise(resolve =>
+            setTimeout(() => resolve(a), 100));
+
+    const test1 = (a, f) => a instanceof Promise ? a.then(f) : f(a);
+    const add5 = a => a + 5;
+
+    // var r = test1(10, add5);
+    // log(r);
+    // go1(go1(10, add5), log);
+    const n1 = 10;
+    log(go1(go1(n1, add5), log));
+
+
+    // var r2 = go1(delay100(10), add5);
+    // r2.then(log);
+    // go1(go1(delay100(10), add5), log);
+    const n2 = delay100(10);
+    log(go1(go1(n2, add5), log));
+    log('###################');
+</script>
+

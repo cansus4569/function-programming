@@ -1,0 +1,26 @@
+<script src="./lib/fx.js"></script>
+## Composition
+
+<script type="module">
+    // 함수 합성 관점에서의 Promise와 모나드
+
+    // f . g
+    // f(g(x))
+
+    const g = a => a + 1;
+    const f = a => a * a;
+
+    log(f(g(1))); // 4
+    log(f(g())); // NaN
+
+    // [1].map(g).map(f).forEach(r => log(r)); // 4
+    Array.of(1).map(g).map(f).forEach(r => log(r)); // 4
+    [].map(g).map(f).forEach(r => log(r, 10)); // 안전 : 아무런 발생이 일어나지 않음
+
+
+    Promise.resolve(2).then(g).then(f).then(r => log(r)); // 9
+    Promise.resolve().then(g).then(f).then(r => log(r)); // NaN
+    new Promise(resolve => 
+        setTimeout(() => resolve(3), 100))
+        .then(g).then(f).then(r => log(r));
+</script>
