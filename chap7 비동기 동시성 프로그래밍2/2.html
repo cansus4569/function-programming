@@ -1,0 +1,108 @@
+<script src="./lib/fx.js"></script>
+
+## 지연된 함수열을 병렬적으로 평가하기 - C.reduce, C.take   
+
+<script>
+    const C = {};
+    function noop() {}
+    const catchNoop = ([...arr]) => 
+        (arr.forEach(a => a instanceof Promise ? a.catch(noop) : a), arr);
+
+    // 병렬적으로 동작하게 함
+    // C.reduce = curry((f, acc, iter) => {
+    //     const iter2 = catchNoop(iter ? [...iter] : [...acc]);
+    //     return iter ?
+    //         reduce(f, acc, iter2) :
+    //         reduce(f, iter2);
+    // });
+    C.reduce = curry((f, acc, iter) => iter ?
+            reduce(f, acc, catchNoop(iter)) :
+            reduce(f, catchNoop(acc)));
+
+    C.take = curry((l, iter) => take(l, catchNoop([...iter])));
+
+
+    const delay500 = a => new Promise(resolve => {
+        log('hi~');
+        setTimeout(() => resolve(a), 500);
+    });
+
+    // console.time('');
+    // go(
+    //     [1, 2, 3, 4, 5, 6, 7, 8, 9],
+    //     L.map(a => delay500(a * a)),
+    //     L.filter(a => a % 2),
+    //     // reduce(add),
+    //     C.reduce(add), // 병렬로 처리되어 속도가 빠름
+    //     // log,
+    //     _ => console.timeEnd('')
+    // );
+
+    // go(
+    //     [1, 2, 3, 4, 5, 6, 7, 8, 9],
+    //     L.map(a => delay500(a * a)),
+    //     L.filter(a => delay500(a % 2)),
+    //     L.map(a => delay500(a * a)),
+    //     C.take(2),
+    //     reduce(add),
+    //     // C.reduce(add), // 병렬로 처리되어 속도가 빠름
+    //     // log
+    // );
+</script>
+
+## 즉시 병렬적으로 평가하기 - C.map, C.filter  
+
+<script>
+    C.takeAll = C.take(Infinity);
+    C.map = curry(pipe(L.map, C.takeAll));
+    C.filter = curry(pipe(L.filter, C.takeAll));
+
+
+    // map(a => delay500(a * a), [1, 2, 3, 4]).then(log);
+    // C.map(a => delay500(a * a), [1, 2, 3, 4]).then(log);
+    // filter(a => delay500(a % 2), [1, 2, 3, 4]).then(log);
+    // C.filter(a => delay500(a % 2), [1, 2, 3, 4]).then(log);
+</script>
+
+## 즉시, 지연, Promise, 병렬적 조합하기
+
+<script>
+    // const delay555 = a => a;
+    const delay555 = (a, name) => new Promise(resolve => {
+        console.log(`${name}: ${a}`);
+        setTimeout(() => resolve(a), 500);
+    });
+
+    console.time('');
+    go(
+        [1,2,3,4,5,6,7,8],
+        // (1) 
+        // map(a => delay555(a * a, 'map 1')),
+        // filter(a => delay555(a % 2, 'filter 2')),
+        // map(a => delay555(a + 1, 'map 3')),
+        // take(2),
+        // (2)
+        // L.map(a => delay555(a * a, 'map 1')),
+        // L.filter(a => delay555(a % 2, 'filter 2')),
+        // L.map(a => delay555(a + 1, 'map 3')),
+        // take(3),
+        // (3)
+        // C.map(a => delay555(a * a, 'map 1')),
+        // L.filter(a => delay555(a % 2, 'filter 2')),
+        // L.map(a => delay555(a + 1, 'map 3')),
+        // take(3),
+        // (4)
+        // L.map(a => delay555(a * a, 'map 1')),
+        // C.filter(a => delay555(a % 2, 'filter 2')),
+        // L.map(a => delay555(a + 1, 'map 3')),
+        // take(3),
+        // (5)
+        L.map(a => delay555(a * a, 'map 1')),
+        L.filter(a => delay555(a % 2, 'filter 2')),
+        L.map(a => delay555(a + 1, 'map 3')),
+        C.take(3),
+        // reduce(add),
+        log,
+        _ => console.timeEnd('')
+    );
+</script>
