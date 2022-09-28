@@ -1,0 +1,46 @@
+<script src="./lib/fx.js"></script>
+
+## async/await
+- 비동기 상황을 동기적인 코드로 다루는 방법중 하나
+
+- await로 지정한 함수는 반드시 프로미스를 반환해야 await를 통해서 결과를 기다려서 해당하는 값을 넣어줄 수 있음
+
+- 정리 : async/await 는 Promise와 관계를 가지고 있음
+- asyn 함수에서는 return 시 Promise를 반환한다
+
+<script>
+    // function delay(a) {
+    //     return new Promise(resolve => setTimeout(() => resolve(a), 500));
+    // }
+
+    function delay(time) {
+        return new Promise(resolve => setTimeout(() => resolve(), time));
+    }
+    async function delayIdentity(a) {
+        await delay(500);
+        return a
+    }
+
+    async function f1() {
+        // const a = delay(10); // Promise 반환
+        const a = await delayIdentity(10); // 10
+        const b = await delayIdentity(5); // 5
+        return a + b;
+    }
+
+    // const pa = Promise.resolve(10);
+    const pa = f1();
+
+    (async () => {
+        log(pa); // Promise 반환
+        log(await pa); // 10
+    })();
+    // log(f1());  // Promise 반환
+    // f1().then(log); // 15
+    // go(f1(), log); // 15
+    // go1(f1(), log); // 15
+    // (async () => {
+    //     log(f1()); // Promise 반환
+    //     log(await f1()); // 15
+    // })();
+</script>

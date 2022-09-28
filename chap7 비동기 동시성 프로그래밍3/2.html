@@ -1,0 +1,39 @@
+<script src="./lib/fx.js"></script>
+
+## Q&A. Array.prototype.map이 있는데 FxJS의 map 함수가 필요한가?
+
+<script>
+    async function delayI(a) {
+        return new Promise(resolve => setTimeout(() => resolve(a), 100));
+    }
+
+
+    // Array.prototype.map 으로는 Promise 를 제어하기 어려워 원하는 결과값을 얻기 어렵다.
+    // 즉, 값을 리턴 받고 싶은데 Promise가 리턴이 된다.
+    async function f2() {
+        const list = [1, 2, 3, 4];
+        const temp = list.map(async a => await delayI(a * a));
+        // log(temp); // Promise가 들어가 있는 Array가 준비되어 있음
+        const res = await temp
+        // log(res);
+    }
+    f2();
+
+    async function f3() {
+        const list = [1, 2, 3, 4];
+        const temp = map(a => delayI(a * a), list);
+        // log(temp); // resolve 했을 때 최종적으로 Array를 리턴할 준비가 된 map
+        const res = await temp;
+        // log(res);
+    }
+    f3();
+
+    function f4() {
+        return map(a => delayI(a * a), [1, 2, 3, 4]);
+    }
+    f4().then(log); // [1, 4, 9, 16]
+    log(f4()); // Promise 리턴
+    (async () => {
+        log(await f4()); // [1, 4, 9, 16]
+    })();
+</script>
