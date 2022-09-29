@@ -1,0 +1,26 @@
+<script src="./lib/fx.js"></script>
+
+## Q&A. 비동기 상황에서 에러 핸들링은 어떻게 해야 하는가?
+- 비동기 상황에서는 에러 핸들링이 조금 더 어렵다.
+<script>
+    // async / await 를 해주어도 에러 핸들링이 쉽지 않음
+    async function f8(list = []) {
+        try { // 에러 핸들링을 위한 try ~ catch
+            return await list
+                .map(async a => await new Promise(
+                    resolve => {
+                        resolve(JSON.parse(a));
+                    }))
+                .filter(a => a % 2)
+                .slice(0, 2);
+        } catch (e) {
+            // 비동기 상황에서는 catch 문으로 에러 핸들링이 되지 않는다.
+            log(e);
+            return [];
+        }
+    }
+    // Promise .catch 문을 사용해도 에러 핸들링이 쉽지 않음...
+    f8(['0', '1', '2', '{']).then(log).catch(e => {
+        log('error handling~!');
+    });
+</script>

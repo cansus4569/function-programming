@@ -1,0 +1,45 @@
+<script src="./lib/fx.js"></script>
+
+## Q&A. 동기/비동기 에러 핸들링에서의 파이프라인의 이점은 무엇인가?
+ - 안전한 함수 합성 가능
+ - 비동기 에러 핸들링이 쉬워짐
+
+<script>
+    async function f9(list = []) {
+        try {
+            // const res = go(
+            //     list,
+            //     map(a => new Promise(resolve => {
+            //         resolve(JSON.parse(a));
+            //     })),
+            //     filter(a => a%2),
+            //     take(2));
+
+            // log(res); // res 는 프로미스여야 한다.
+            // return await res;
+
+            return await go(
+                list,
+                map(a => new Promise(resolve => {
+                    resolve(JSON.parse(a));
+                })),
+                filter(a => a % 2),
+                take(2));
+            
+            // return await list
+            //     .map(async a => await new Promise(
+            //         resolve => {
+            //             resolve(JSON.parse(a));
+            //         }))
+            //     .filter(a => a % 2)
+            //     .slice(0, 2);
+        } catch (e) {
+            // catch 문으로 올려면 Promise.reject 일 경우 들어올 수 있고
+            // return await 로 수행하면 catch 문으로 옴 
+            return [];
+        }
+    }
+    f9(['0', '1', '2', '3', '4', '{']).then(a => log(a, 'f9')).catch(e => {
+        log('error handling~!', e);
+    });
+</script>
